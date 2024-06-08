@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -22,6 +25,7 @@ public class Screensaver extends JFrame {
     };
 
     static ArrayList<String> coreValues = new ArrayList<>(Arrays.asList(stringArray));
+
     public Screensaver() {
         setUndecorated(true);
         setBackground(new Color(0, 0, 0));
@@ -29,6 +33,11 @@ public class Screensaver extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setVisible(true);
+
+        BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImg, new Point(0, 0), "blank cursor");
+
+        setCursor(blankCursor);
 
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         gd.setFullScreenWindow(this);
@@ -43,20 +52,62 @@ public class Screensaver extends JFrame {
         });
 
         // Set up a timer to update the text every 5 seconds
-        Timer timer = new Timer(7500, e -> text.updateText());
+        Timer timer = new Timer(7500, e -> {
+            text.updateText();
+            // text.blurText();
+        });
         timer.start();
     }
 
     private static class ScreenText extends JPanel {
-        public ScreenText() {
-            setForeground(Color.PINK);
+
+        protected void blurText() {
+            // Get the size of the component
+            int width = getWidth();
+            System.out.println(width);
+            int height = getHeight();
+            System.out.println(height);
+
+            // Create a BufferedImage to draw the current content
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D imageGraphics = image.createGraphics();
+
+            // Double buffering: draw the current content onto the BufferedImage
+            paintComponent(this.getGraphics());
+
+            // Create a blurred version of the BufferedImage
+            BufferedImage blurredImage = blurImage(image);
+
+            // Get the Graphics2D context of the component
+            Graphics2D g2d = (Graphics2D) getGraphics();
+
+            // Draw the blurred image onto the component
+            g2d.drawImage(blurredImage, 0, 0, null);
+            g2d.dispose(); // Dispose to release resources
         }
 
-        public void updateText() {
+        private BufferedImage blurImage(BufferedImage image) {
+            // Define a simple 3x3 blur kernel
+            float[] kernel = {
+                    1f/9f, 1f/9f, 1f/9f,
+                    1f/9f, 1f/9f, 1f/9f,
+                    1f/9f, 1f/9f, 1f/9f
+            };
+
+            // Create the convolution filter with the kernel
+            Kernel blurKernel = new Kernel(3, 3, kernel);
+            ConvolveOp blurOp = new ConvolveOp(blurKernel, ConvolveOp.EDGE_NO_OP, null);
+
+            // Apply the blur filter to the image
+            return blurOp.filter(image, null);
+        }
+
+
+        protected void updateText() {
             Random random = new Random();
             Graphics2D g2d = (Graphics2D) this.getGraphics();
-            int x = random.nextInt((int)((float) getWidth() * 0.5)); // Get random x within panel width
-            int y = random.nextInt(getHeight()); // Get random y within panel height
+            int x = random.nextInt((int)((float) getWidth() * 0.4));
+            int y = random.nextInt(getHeight());
 
             int fontSize = 12 + (int) (random.nextFloat() * 62);
             g2d.setFont(
@@ -65,6 +116,7 @@ public class Screensaver extends JFrame {
                             Font.PLAIN,
                             fontSize)
             );
+
             g2d.setColor(
                     new Color(
                             random.nextFloat(), random.nextFloat(), random.nextFloat()
