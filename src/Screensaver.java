@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
@@ -46,6 +48,12 @@ public class Screensaver extends JFrame {
                 System.exit(0);
             }
         });
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                System.exit(0);
+            }
+        });
 
         // ScreenText JPanel with initial BufferedImage object
         ScreenText screen = new ScreenText(
@@ -53,7 +61,7 @@ public class Screensaver extends JFrame {
         );
         add(screen);
 
-        Timer timer = new Timer(100, e -> {
+        Timer timer = new Timer(6000, e -> {
             screen.updateImg(
                     GaussianEffects.gaussianBlur3x3(
                             screen.getImg()
