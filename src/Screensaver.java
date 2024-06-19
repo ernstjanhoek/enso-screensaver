@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 
 public class Screensaver extends JFrame {
@@ -62,11 +63,15 @@ public class Screensaver extends JFrame {
         add(screen);
 
         Timer timer = new Timer(10, e -> {
-            screen.updateImg(
-                    GaussianEffects.gaussianBlur3x3(
-                            screen.getImg()
-                    )
-            );
+            try {
+                screen.updateImg(
+                        GaussianEffects.gaussianBlur3x3(
+                                screen.getImg()
+                        )
+                );
+            } catch (ExecutionException | InterruptedException ex) {
+                System.out.println(ex.getMessage());
+            }
             screen.updateImg(
                     PrintText.addText(
                             screen.getImg(),
