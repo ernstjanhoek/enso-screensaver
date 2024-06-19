@@ -61,7 +61,7 @@ public class Screensaver extends JFrame {
         );
         add(screen);
 
-        Timer timer = new Timer(6000, e -> {
+        Timer timer = new Timer(10, e -> {
             screen.updateImg(
                     GaussianEffects.gaussianBlur3x3(
                             screen.getImg()
